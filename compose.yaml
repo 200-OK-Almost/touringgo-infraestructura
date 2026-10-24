@@ -1,0 +1,105 @@
+
+services:
+  gateway:
+    build:
+      context: ../touringgo-gateway/src/TouringGo.Gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8080"
+    depends_on:
+      - usuarios-api
+      - lugares-api
+      - itinerarios-api
+
+  usuarios-api:
+    build:
+      context: ../touringgo-usuarios
+      dockerfile: Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=usuarios-db;Port=5432;Database=usuarios_db;Username=postgres;Password=postgres"
+      Authentication__Google__ClientId: ${GOOGLE_CLIENT_ID}
+      Authentication__Google__ClientSecret: ${GOOGLE_CLIENT_SECRET}
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: TouringGo.Usuarios
+      Jwt__Audience: TouringGo
+      Jwt__ExpirationMinutes: "60"
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      usuarios-db:
+        condition: service_healthy
+
+  usuarios-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - usuarios-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d usuarios_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "15431:5432"
+
+
+  lugares-api:
+    build:
+      context: ../touringgo-lugares
+      dockerfile: Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=lugares-db;Port=5432;Database=lugares_db;Username=postgres;Password=postgres"
+    depends_on:
+      lugares-db:
+        condition: service_healthy
+
+  lugares-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: lugares_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - lugares-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d lugares_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "15432:5432"
+
+
+  itinerarios-api:
+    build:
+      context: ../touringgo-itinerarios
+      dockerfile: Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=itinerarios-db;Port=5432;Database=itinerarios_db;Username=postgres;Password=postgres"
+    depends_on:
+      itinerarios-db:
+        condition: service_healthy
+
+  itinerarios-db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: itinerarios_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - itinerarios-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d itinerarios_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "15433:5432"
+
+
+volumes:
+  usuarios-data:
+  lugares-data:
+  itinerarios-data:
