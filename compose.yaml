@@ -24,6 +24,8 @@ services:
       Jwt__Audience: TouringGo
       Jwt__ExpirationMinutes: "60"
       ASPNETCORE_ENVIRONMENT: Development
+      Frontend__BaseUrl: "http://localhost:3000"
+      
     depends_on:
       usuarios-db:
         condition: service_healthy
@@ -98,6 +100,15 @@ services:
     ports:
       - "15433:5432"
 
+  frontend:
+    build:
+      context: ../touringgo-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+    restart: unless-stopped
 
 volumes:
   usuarios-data:

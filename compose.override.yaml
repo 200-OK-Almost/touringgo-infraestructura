@@ -1,0 +1,4 @@
+services:
+  usuarios-api:
+    environment:
+      Frontend__BaseUrl: "http://localhost:5173"
