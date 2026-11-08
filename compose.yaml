@@ -80,6 +80,9 @@ services:
       dockerfile: Dockerfile
     environment:
       ConnectionStrings__DefaultConnection: "Host=itinerarios-db;Port=5432;Database=itinerarios_db;Username=postgres;Password=postgres"
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: TouringGo.Usuarios
+      Jwt__Audience: TouringGo
     depends_on:
       itinerarios-db:
         condition: service_healthy
