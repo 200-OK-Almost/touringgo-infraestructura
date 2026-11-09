@@ -58,7 +58,10 @@ services:
         condition: service_healthy
 
   lugares-db:
-    image: postgres:16
+    build:
+      context: ../touringgo-lugares
+      dockerfile: Dockerfile.postgres
+    image: touringgo-lugares-db:dev
     environment:
       POSTGRES_DB: lugares_db
       POSTGRES_USER: postgres
