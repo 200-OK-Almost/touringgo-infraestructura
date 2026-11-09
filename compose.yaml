@@ -24,7 +24,7 @@ services:
       Jwt__Audience: TouringGo
       Jwt__ExpirationMinutes: "60"
       ASPNETCORE_ENVIRONMENT: Development
-      Frontend__BaseUrl: "http://localhost:3000"
+      Frontend__BaseUrl: "${FRONTEND_BASE_URL:-http://localhost:5173}"
       
     depends_on:
       usuarios-db:
@@ -83,6 +83,7 @@ services:
       Jwt__Key: ${JWT_KEY}
       Jwt__Issuer: TouringGo.Usuarios
       Jwt__Audience: TouringGo
+      Lugares__BaseUrl: "http://lugares-api:8080"
     depends_on:
       itinerarios-db:
         condition: service_healthy
