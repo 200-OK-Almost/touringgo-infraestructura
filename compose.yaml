@@ -53,8 +53,11 @@ services:
       dockerfile: Dockerfile
     environment:
       ConnectionStrings__DefaultConnection: "Host=lugares-db;Port=5432;Database=lugares_db;Username=postgres;Password=postgres"
+      Embeddings__BaseUrl: "http://embeddings-api:8000"
     depends_on:
       lugares-db:
+        condition: service_healthy
+      embeddings-api:
         condition: service_healthy
 
   lugares-db:
@@ -107,6 +110,28 @@ services:
     ports:
       - "15433:5432"
 
+  embeddings-api:
+    build:
+      context: ../touringgo-embeddings
+      dockerfile: Dockerfile
+    environment:
+      HF_HOME: /models/huggingface
+    volumes:
+      - embeddings-model-cache:/models
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    ports:
+      - "8084:8000"
+
   frontend:
     build:
       context: ../touringgo-frontend
@@ -121,3 +146,4 @@ volumes:
   usuarios-data:
   lugares-data:
   itinerarios-data:
+  embeddings-model-cache:
