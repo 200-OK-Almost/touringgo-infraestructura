@@ -91,9 +91,72 @@ curl.exe -i -X POST "http://localhost:8000/itinerarios/api/viajes/<ID>/sugerenci
   -d '{}'
 ```
 
+## 11. Asistente RAG — smoke E2E
+
+El script crea un viaje, genera el itinerario, consulta capacidades, prueba una consulta, una aclaración y, opcionalmente, aplica una recomendación.
+
+```powershell
+cd C:\Proyecto\touringgo-infraestructura
+.\scripts\smoke-asistente.ps1 -Aplicar
+```
+
+Para conservar el viaje y usar su ID en el load test:
+
+```powershell
+$smoke = .\scripts\smoke-asistente.ps1 -Aplicar -KeepViaje
+$smoke.ViajeId
+```
+
+Sin `-Aplicar` el smoke no muta itinerarios. El script elimina el viaje creado salvo que se use `-KeepViaje`.
+
+Checkpoints:
+
+- capacidades devuelve `habilitado: true`;
+- la consulta devuelve recomendaciones;
+- con 2+ paradas, la aclaración devuelve opciones;
+- con `-Aplicar`, el endpoint de aplicar devuelve `200`.
+
+## 12. Asistente RAG — load test
+
+Requiere un `ViajeId` válido. Se puede reutilizar el de un smoke con `-KeepViaje`.
+
+```powershell
+cd C:\Proyecto\touringgo-infraestructura
+.\scripts\load-asistente.ps1 -ViajeId "<ID>" -Requests 20 -Concurrency 5
+```
+
+El script informa:
+
+- RPS;
+- latencia promedio y P95;
+- conteo por status HTTP;
+- advertencia si aparece `429`.
+
+Para probar rate limiting, subir `Requests` por encima de `Asistente:RateLimit:PermitLimitPorViaje`.
+
+## 13. Ollama off/on
+
+Con Ollama deshabilitado el smoke debe seguir funcionando mediante reglas y fallback determinista:
+
+```yaml
+Asistente__LlmEnabled: "false"
+Asistente__LlmGenerarMensaje: "false"
+```
+
+Con Ollama habilitado y disponible se pueden probar intención y generación:
+
+```yaml
+Asistente__LlmEnabled: "true"
+Asistente__LlmGenerarMensaje: "true"
+```
+
+Si Ollama no responde, el asistente no debe fallar: debe usar el fallback y registrar `llm_error`/`llm_timeout`.
+
 ## Checkpoints
 
 - Paso 5: **401** sin token / **200** con token.
-- Paso 3: `categorias` de Lugares son códigos y el OR por lista funciona.
-- Paso 6: acepta `categoriaCodigos` (mandar `categoriaIds` → 400).
+- Paso 3: `categorias` de Lugares son c��digos y el OR por lista funciona.
+- Paso 6: acepta `categoriaCodigos` (mandar `categoriaIds` ��' 400).
 - Paso 7: `paradas` con turno por orden (no depende del turno del lugar).
+- Asistente: capacidades, consulta, aclaración y aplicar responden según contrato.
+- Load test: sin `500` inesperados; `429` solo al superar el límite.
