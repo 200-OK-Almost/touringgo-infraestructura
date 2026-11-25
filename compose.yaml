@@ -87,6 +87,7 @@ services:
       Jwt__Issuer: TouringGo.Usuarios
       Jwt__Audience: TouringGo
       Lugares__BaseUrl: "http://lugares-api:8080"
+      Usuarios__BaseUrl: "http://usuarios-api:8080"
       Ollama__BaseUrl: "${OLLAMA_BASE_URL:-http://host.docker.internal:11434}"
       Ollama__Model: "${OLLAMA_MODEL:-llama3.2}"
       Asistente__Enabled: "true"
